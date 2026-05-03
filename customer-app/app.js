@@ -4,11 +4,13 @@ let cart = [];
 let allProducts = [];
 let userAddress = "Hyderabad";
 
+// 🔢 Cart Count
 function updateCartCount() {
   const el = document.getElementById("cartCount");
   if (el) el.innerText = cart.reduce((s, i) => s + i.qty, 0);
 }
 
+// 📍 Location
 function getUserLocation() {
   if (!navigator.geolocation) return;
 
@@ -23,6 +25,7 @@ function getUserLocation() {
   });
 }
 
+// 🛒 Load Products
 function loadProducts() {
   fetch(API + "/api/products")
     .then(res => res.json())
@@ -35,6 +38,7 @@ function loadProducts() {
     });
 }
 
+// 📦 Display Products
 function displayProducts(data) {
   let output = "";
 
@@ -55,6 +59,7 @@ function displayProducts(data) {
   document.getElementById("products").innerHTML = output;
 }
 
+// 🔍 Search
 function searchProducts() {
   const q = document.getElementById("searchInput").value.toLowerCase();
 
@@ -66,6 +71,7 @@ function searchProducts() {
   displayProducts(filtered);
 }
 
+// 📂 Category filter
 function filterCategory(cat) {
   const filtered = allProducts.filter(p =>
     (p.category || "").toLowerCase().includes(cat.toLowerCase())
@@ -74,6 +80,7 @@ function filterCategory(cat) {
   displayProducts(filtered);
 }
 
+// ➕ Add to cart
 function addToCart(id, name, price, image) {
   const item = cart.find(i => i.id === id);
 
@@ -84,6 +91,7 @@ function addToCart(id, name, price, image) {
   alert(name + " added ✅");
 }
 
+// 🛒 View Cart
 function viewCart() {
   let total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
 
@@ -99,39 +107,49 @@ function viewCart() {
 
   output += `
     <h2>Total: ₹${total}</h2>
-    <button onclick="payNow()">Pay Now</button>
-    <button onclick="loadProducts()">Back</button>
+    <button onclick="payNow()">💳 Pay Now</button>
+    <button onclick="loadProducts()">⬅ Back</button>
     </div>
   `;
 
   document.getElementById("products").innerHTML = output;
 }
+
+// 💳 Payment (Demo)
 function payNow() {
   if (cart.length === 0) {
     alert("Cart is empty ❌");
     return;
   }
 
-  alert("Payment Successful ✅ Demo Mode");
+  alert("Payment Successful ✅ (Demo)");
   placeOrder();
 }
 
+// 📦 Place Order (with validation)
 function placeOrder() {
-  const customerName = prompt("Enter your name");
-  const phone = prompt("Enter your phone number");
-  const address = prompt("Enter your delivery address");
+
+  let customerName = prompt("Enter your name");
+  if (!customerName) return alert("Name required ❌");
+
+  let phone = prompt("Enter your phone number");
+  if (!phone) return alert("Phone required ❌");
+
+  let address = prompt("Enter your delivery address");
+  if (!address) return alert("Address required ❌");
 
   const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
 
-  fetch("https://quickbasket-backend-y5pc.onrender.com/api/orders", {
+  fetch(API + "/api/orders", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({
-      customerName: customerName,
-      phone: phone,
-      address: address,
+      customerName,
+      phone,
+      address,
       items: cart,
-      total: total
+      total,
+      status: "Placed"
     })
   })
   .then(res => res.json())
@@ -142,6 +160,8 @@ function placeOrder() {
     loadProducts();
   });
 }
+
+// 📦 Track Orders (Auto refresh)
 function trackOrders() {
   fetch(API + "/api/orders")
     .then(res => res.json())
@@ -151,6 +171,7 @@ function trackOrders() {
       data.forEach(o => {
         output += `
           <hr>
+          <p><b>Name:</b> ${o.customerName}</p>
           <p><b>Total:</b> ₹${o.total}</p>
           <p><b>Status:</b> ${o.status}</p>
           <p><b>Address:</b> ${o.address}</p>
@@ -162,11 +183,20 @@ function trackOrders() {
     });
 }
 
+// 🔁 Auto refresh orders every 5 sec
+setInterval(() => {
+  if (window.location.href.includes("orders")) {
+    trackOrders();
+  }
+}, 5000);
+
+// 🚪 Logout
 function logout() {
   localStorage.removeItem("user");
   location.href = "login.html";
 }
 
+// 🚀 Init
 getUserLocation();
 loadProducts();
 updateCartCount();
