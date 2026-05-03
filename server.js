@@ -20,11 +20,11 @@ app.use(express.json());
 
 // Static files
 app.use(express.static(__dirname));
-app.use("/customer-app", express.static(path.join(__dirname, "../customer-app")));
-app.use("/admin-panel", express.static(path.join(__dirname, "admin-panel")));
-app.use("/shop-app", express.static(path.join(__dirname, "shop-app")));
-app.use("/delivery-boy-app", express.static(path.join(__dirname, "delivery-boy-app")));
 
+app.use("/customer-app", express.static(path.join(__dirname, "../customer-app")));
+app.use("/admin-panel", express.static(path.join(__dirname, "../admin-panel")));
+app.use("/shop-app", express.static(path.join(__dirname, "../shop-app")));
+app.use("/delivery-boy-app", express.static(path.join(__dirname, "../delivery-boy-app")));
 const MONGO_URL =
   process.env.MONGO_URI ||
   "mongodb+srv://quickbasket:Quick123@cluster0.d4uhmxk.mongodb.net/quickbasket";
