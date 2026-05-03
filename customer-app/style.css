@@ -1,52 +1,107 @@
 body {
   margin: 0;
-  font-family: Arial;
-  background: #f4f4f4;
+  font-family: Arial, sans-serif;
+  background: #f5f6f7;
 }
 
-header {
+.topbar {
   background: #0a8f3c;
   color: white;
-  padding: 15px;
+  padding: 18px;
   display: flex;
-  justify-content: space-between;
+  gap: 20px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
-header button {
-  margin-left: 10px;
-  padding: 8px 12px;
+.topbar h1 {
+  margin: 0;
+  font-size: 32px;
+}
+
+.topbar input {
+  padding: 14px;
+  width: 300px;
+  border-radius: 10px;
   border: none;
-  border-radius: 5px;
-  background: white;
+}
+
+.topbar button {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 8px;
   cursor: pointer;
 }
 
-.grid {
+.location {
+  cursor: pointer;
+  max-width: 280px;
+}
+
+.hero {
+  margin: 20px;
+  padding: 40px;
+  border-radius: 18px;
+  background: linear-gradient(90deg, #087c37, #7ccf62);
+  color: white;
+}
+
+.hero h2 {
+  font-size: 42px;
+}
+
+.categories {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 15px;
-  padding: 15px;
+  margin: 20px;
+}
+
+.categories div {
+  background: white;
+  padding: 20px;
+  border-radius: 14px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 2px 10px #ddd;
+}
+
+.title {
+  margin-left: 20px;
+}
+
+.products {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 18px;
+  padding: 20px;
 }
 
 .card {
   background: white;
-  padding: 15px;
-  border-radius: 10px;
-  text-align: center;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  padding: 16px;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px #ddd;
 }
 
 .card img {
   width: 100%;
-  border-radius: 10px;
+  height: 140px;
+  object-fit: contain;
 }
 
 .card button {
+  width: 100%;
+  padding: 10px;
   background: #0a8f3c;
   color: white;
   border: none;
-  padding: 8px;
-  border-radius: 5px;
-  margin-top: 10px;
+  border-radius: 8px;
+}
+
+.cart-box {
+  background: white;
+  margin: 20px;
+  padding: 20px;
+  border-radius: 14px;
 }
