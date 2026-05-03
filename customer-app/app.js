@@ -118,18 +118,21 @@ function payNow() {
 }
 
 function placeOrder() {
+  const customerName = prompt("Enter your name");
+  const phone = prompt("Enter your phone number");
+  const address = prompt("Enter your delivery address");
+
   const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
 
-  fetch(API + "/api/orders", {
+  fetch("https://quickbasket-backend-y5pc.onrender.com/api/orders", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {"Content-Type": "application/json"},
     body: JSON.stringify({
-      customerName: "User",
-      phone: "9999999999",
-      address: userAddress,
+      customerName: customerName,
+      phone: phone,
+      address: address,
       items: cart,
-      total,
-      status: "Placed"
+      total: total
     })
   })
   .then(res => res.json())
@@ -140,7 +143,6 @@ function placeOrder() {
     loadProducts();
   });
 }
-
 function trackOrders() {
   fetch(API + "/api/orders")
     .then(res => res.json())
