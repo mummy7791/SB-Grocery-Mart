@@ -18,17 +18,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Static files
+// Static folders
 app.use(express.static(__dirname));
-
 app.use("/customer-app", express.static(path.join(__dirname, "..", "customer-app")));
 app.use("/admin-panel", express.static(path.join(__dirname, "..", "admin-panel")));
 app.use("/shop-app", express.static(path.join(__dirname, "..", "shop-app")));
 app.use("/delivery-boy-app", express.static(path.join(__dirname, "..", "delivery-boy-app")));
-
-app.get("/customer-app/login.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "..", "customer-app", "login.html"));
-});
 
 const MONGO_URL =
   process.env.MONGO_URI ||
@@ -39,32 +34,9 @@ mongoose
   .then(() => console.log("MongoDB Connected ✅"))
   .catch((err) => console.log("MongoDB Error ❌", err));
 
-const productSchema = new mongoose.Schema(
-  {
-    name: String,
-    category: String,
-    price: Number,
-    image: String,
-  },
-  { timestamps: true }
-);
+const JWT_SECRET = process.env.JWT_SECRET || "sb_grocery_secret_2026";
 
-const orderSchema = new mongoose.Schema(
-  {
-    customerId: String,
-    customerName: String,
-    phone: String,
-    address: String,
-    items: Array,
-    subtotal: Number,
-    gst: Number,
-    delivery: Number,
-    total: Number,
-    status: { type: String, default: "Placed" },
-  },
-  { timestamps: true }
-);
-
+// SCHEMAS
 const customerSchema = new mongoose.Schema(
   {
     name: String,
@@ -87,43 +59,113 @@ const otpSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Product = mongoose.model("Product", productSchema);
-const Order = mongoose.model("Order", orderSchema);
+const shopSchema = new mongoose.Schema(
+  {
+    name: String,
+    owner: String,
+    phone: String,
+    password: String,
+    address: String,
+  },
+  { timestamps: true }
+);
+
+const deliveryBoySchema = new mongoose.Schema(
+  {
+    name: String,
+    phone: String,
+    password: String,
+    vehicleNo: String,
+  },
+  { timestamps: true }
+);
+
+const productSchema = new mongoose.Schema(
+  {
+    shopId: String,
+    shopName: String,
+    name: String,
+    category: String,
+    price: Number,
+    image: String,
+  },
+  { timestamps: true }
+);
+
+const orderSchema = new mongoose.Schema(
+  {
+    customerId: String,
+    customerName: String,
+    phone: String,
+    address: String,
+
+    shopId: String,
+    shopName: String,
+
+    deliveryBoyId: String,
+    deliveryBoyName: String,
+
+    items: Array,
+
+    subtotal: Number,
+    gst: Number,
+    delivery: Number,
+    total: Number,
+
+    commissionPercent: { type: Number, default: 10 },
+    commissionAmount: Number,
+    shopAmount: Number,
+
+    paymentStatus: { type: String, default: "Paid" },
+    status: { type: String, default: "Placed" },
+  },
+  { timestamps: true }
+);
+
+// MODELS
 const Customer = mongoose.model("Customer", customerSchema);
 const Otp = mongoose.model("Otp", otpSchema);
+const Shop = mongoose.model("Shop", shopSchema);
+const DeliveryBoy = mongoose.model("DeliveryBoy", deliveryBoySchema);
+const Product = mongoose.model("Product", productSchema);
+const Order = mongoose.model("Order", orderSchema);
 
-const JWT_SECRET = process.env.JWT_SECRET || "sb_grocery_secret_2026";
-
+// HOME
 app.get("/", (req, res) => {
-  res.send("QuickBasket backend running ✅");
+  res.send("SB Grocery Mart Backend Running ✅");
 });
 
-// PRODUCTS
-app.get("/api/products", async (req, res) => {
-  try {
-    const products = await Product.find().sort({ createdAt: -1 });
-    res.json(products);
-  } catch {
-    res.status(500).json({ message: "Products fetch failed" });
-  }
-});
-
-app.post("/api/products", async (req, res) => {
-  try {
-    const product = await Product.create({
-      name: req.body.name,
-      category: req.body.category,
-      price: Number(req.body.price),
-      image: req.body.image,
+// SEED DEFAULT SHOP + DELIVERY BOY
+app.get("/api/seed", async (req, res) => {
+  let shop = await Shop.findOne({ phone: "9999999999" });
+  if (!shop) {
+    shop = await Shop.create({
+      name: "SB Main Store",
+      owner: "Shop Owner",
+      phone: "9999999999",
+      password: "1234",
+      address: "Hyderabad",
     });
-
-    res.json({ message: "Product added", product });
-  } catch {
-    res.status(500).json({ message: "Product add failed" });
   }
+
+  let boy = await DeliveryBoy.findOne({ phone: "8888888888" });
+  if (!boy) {
+    boy = await DeliveryBoy.create({
+      name: "Delivery Boy",
+      phone: "8888888888",
+      password: "1234",
+      vehicleNo: "TS09AB1234",
+    });
+  }
+
+  res.json({
+    message: "Seed created",
+    shopLogin: { phone: "9999999999", password: "1234" },
+    deliveryLogin: { phone: "8888888888", password: "1234" },
+  });
 });
 
-// OTP SEND
+// CUSTOMER OTP SEND
 app.post("/api/customer/send-otp", async (req, res) => {
   try {
     const { name, phone, email, address } = req.body;
@@ -156,7 +198,7 @@ app.post("/api/customer/send-otp", async (req, res) => {
   }
 });
 
-// OTP VERIFY + CUSTOMER SAVE
+// CUSTOMER OTP VERIFY
 app.post("/api/customer/verify-otp", async (req, res) => {
   try {
     const { phone, otp } = req.body;
@@ -190,11 +232,7 @@ app.post("/api/customer/verify-otp", async (req, res) => {
     await Otp.deleteMany({ phone });
 
     const token = jwt.sign(
-      {
-        id: customer._id,
-        phone: customer.phone,
-        role: "customer",
-      },
+      { id: customer._id, phone: customer.phone, role: "customer" },
       JWT_SECRET,
       { expiresIn: "7d" }
     );
@@ -246,28 +284,194 @@ app.delete("/api/customers/:id", async (req, res) => {
   }
 });
 
-// ORDERS
+// SHOP CREATE
+app.post("/api/shops", async (req, res) => {
+  try {
+    const shop = await Shop.create({
+      name: req.body.name,
+      owner: req.body.owner,
+      phone: req.body.phone,
+      password: req.body.password,
+      address: req.body.address,
+    });
+
+    res.json({ message: "Shop created", shop });
+  } catch {
+    res.status(500).json({ message: "Shop create failed" });
+  }
+});
+
+// SHOP LOGIN
+app.post("/api/shop/login", async (req, res) => {
+  try {
+    const shop = await Shop.findOne({
+      phone: req.body.phone,
+      password: req.body.password,
+    });
+
+    if (!shop) return res.status(401).json({ message: "Invalid shop login" });
+
+    res.json({
+      message: "Shop login success",
+      shop,
+    });
+  } catch {
+    res.status(500).json({ message: "Shop login failed" });
+  }
+});
+
+// ALL SHOPS
+app.get("/api/shops", async (req, res) => {
+  try {
+    const shops = await Shop.find().sort({ createdAt: -1 });
+    res.json(shops);
+  } catch {
+    res.status(500).json({ message: "Shops fetch failed" });
+  }
+});
+
+// DELIVERY BOY CREATE
+app.post("/api/delivery-boys", async (req, res) => {
+  try {
+    const boy = await DeliveryBoy.create({
+      name: req.body.name,
+      phone: req.body.phone,
+      password: req.body.password,
+      vehicleNo: req.body.vehicleNo,
+    });
+
+    res.json({ message: "Delivery boy created", boy });
+  } catch {
+    res.status(500).json({ message: "Delivery boy create failed" });
+  }
+});
+
+// DELIVERY BOY LOGIN
+app.post("/api/delivery/login", async (req, res) => {
+  try {
+    const boy = await DeliveryBoy.findOne({
+      phone: req.body.phone,
+      password: req.body.password,
+    });
+
+    if (!boy) return res.status(401).json({ message: "Invalid delivery login" });
+
+    res.json({
+      message: "Delivery boy login success",
+      deliveryBoy: boy,
+    });
+  } catch {
+    res.status(500).json({ message: "Delivery login failed" });
+  }
+});
+
+// PRODUCTS
+app.get("/api/products", async (req, res) => {
+  try {
+    const products = await Product.find().sort({ createdAt: -1 });
+    res.json(products);
+  } catch {
+    res.status(500).json({ message: "Products fetch failed" });
+  }
+});
+
+app.post("/api/products", async (req, res) => {
+  try {
+    let shopId = req.body.shopId || "";
+    let shopName = req.body.shopName || "SB Main Store";
+
+    if (!shopId) {
+      const defaultShop = await Shop.findOne();
+      if (defaultShop) {
+        shopId = defaultShop._id.toString();
+        shopName = defaultShop.name;
+      }
+    }
+
+    const product = await Product.create({
+      shopId,
+      shopName,
+      name: req.body.name,
+      category: req.body.category,
+      price: Number(req.body.price),
+      image: req.body.image,
+    });
+
+    res.json({ message: "Product added", product });
+  } catch {
+    res.status(500).json({ message: "Product add failed" });
+  }
+});
+
+// SHOP PRODUCTS
+app.get("/api/shop/products/:shopId", async (req, res) => {
+  try {
+    const products = await Product.find({ shopId: req.params.shopId }).sort({
+      createdAt: -1,
+    });
+    res.json(products);
+  } catch {
+    res.status(500).json({ message: "Shop products failed" });
+  }
+});
+
+// ORDERS CREATE
 app.post("/api/orders", async (req, res) => {
   try {
+    const total = Number(req.body.total || 0);
+    const commissionPercent = 10;
+    const commissionAmount = Math.round(total * commissionPercent) / 100;
+    const shopAmount = total - commissionAmount;
+
+    let shopId = req.body.shopId || "";
+    let shopName = req.body.shopName || "SB Main Store";
+
+    if (!shopId) {
+      const firstItem = req.body.items?.[0];
+      if (firstItem?.shopId) {
+        shopId = firstItem.shopId;
+        shopName = firstItem.shopName || shopName;
+      } else {
+        const defaultShop = await Shop.findOne();
+        if (defaultShop) {
+          shopId = defaultShop._id.toString();
+          shopName = defaultShop.name;
+        }
+      }
+    }
+
     const order = await Order.create({
       customerId: req.body.customerId,
       customerName: req.body.customerName,
       phone: req.body.phone,
       address: req.body.address,
-      items: req.body.items,
+
+      shopId,
+      shopName,
+
+      items: req.body.items || [],
+
       subtotal: Number(req.body.subtotal || 0),
       gst: Number(req.body.gst || 0),
       delivery: Number(req.body.delivery || 0),
-      total: Number(req.body.total),
+      total,
+
+      commissionPercent,
+      commissionAmount,
+      shopAmount,
+
+      paymentStatus: req.body.paymentStatus || "Paid",
       status: "Placed",
     });
 
     res.json({ message: "Order placed", order });
-  } catch {
+  } catch (err) {
+    console.log(err);
     res.status(500).json({ message: "Order failed" });
   }
 });
 
+// ADMIN ALL ORDERS
 app.get("/api/orders", async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
@@ -277,11 +481,12 @@ app.get("/api/orders", async (req, res) => {
   }
 });
 
+// CUSTOMER ORDERS
 app.get("/api/my-orders/:customerId", async (req, res) => {
   try {
-    const orders = await Order.find({
-      customerId: req.params.customerId,
-    }).sort({ createdAt: -1 });
+    const orders = await Order.find({ customerId: req.params.customerId }).sort({
+      createdAt: -1,
+    });
 
     res.json(orders);
   } catch {
@@ -289,6 +494,107 @@ app.get("/api/my-orders/:customerId", async (req, res) => {
   }
 });
 
+// SHOP ORDERS
+app.get("/api/shop/orders/:shopId", async (req, res) => {
+  try {
+    const orders = await Order.find({ shopId: req.params.shopId }).sort({
+      createdAt: -1,
+    });
+
+    res.json(orders);
+  } catch {
+    res.status(500).json({ message: "Shop orders fetch failed" });
+  }
+});
+
+// SHOP ACCEPT ORDER
+app.put("/api/shop/orders/:id/accept", async (req, res) => {
+  try {
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status: "Accepted by Shop" },
+      { new: true }
+    );
+
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    res.json({ message: "Order accepted", order });
+  } catch {
+    res.status(500).json({ message: "Accept failed" });
+  }
+});
+
+// SHOP REJECT ORDER
+app.put("/api/shop/orders/:id/reject", async (req, res) => {
+  try {
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status: "Rejected by Shop" },
+      { new: true }
+    );
+
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    res.json({ message: "Order rejected", order });
+  } catch {
+    res.status(500).json({ message: "Reject failed" });
+  }
+});
+
+// DELIVERY BOY AVAILABLE ORDERS
+app.get("/api/delivery/orders", async (req, res) => {
+  try {
+    const orders = await Order.find({
+      status: "Accepted by Shop",
+    }).sort({ createdAt: -1 });
+
+    res.json(orders);
+  } catch {
+    res.status(500).json({ message: "Delivery orders fetch failed" });
+  }
+});
+
+// DELIVERY PICKUP
+app.put("/api/delivery/orders/:id/pickup", async (req, res) => {
+  try {
+    const boy = await DeliveryBoy.findById(req.body.deliveryBoyId);
+
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      {
+        status: "Out for Delivery",
+        deliveryBoyId: req.body.deliveryBoyId,
+        deliveryBoyName: boy?.name || "",
+      },
+      { new: true }
+    );
+
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    res.json({ message: "Order picked up", order });
+  } catch {
+    res.status(500).json({ message: "Pickup failed" });
+  }
+});
+
+// DELIVERY DELIVERED
+app.put("/api/delivery/orders/:id/delivered", async (req, res) => {
+  try {
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status: "Delivered" },
+      { new: true }
+    );
+
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    res.json({ message: "Order delivered", order });
+  } catch {
+    res.status(500).json({ message: "Delivery update failed" });
+  }
+});
+
+// OLD STATUS UPDATE SUPPORT
 app.put("/api/orders/:id/status", async (req, res) => {
   try {
     const order = await Order.findByIdAndUpdate(
@@ -302,6 +608,39 @@ app.put("/api/orders/:id/status", async (req, res) => {
     res.json({ message: "Status updated", order });
   } catch {
     res.status(500).json({ message: "Status update failed" });
+  }
+});
+
+// ADMIN STATS
+app.get("/api/admin/stats", async (req, res) => {
+  try {
+    const orders = await Order.find();
+
+    const totalOrders = orders.length;
+    const deliveredOrders = orders.filter((o) => o.status === "Delivered").length;
+    const totalSales = orders.reduce((s, o) => s + Number(o.total || 0), 0);
+    const totalCommission = orders.reduce(
+      (s, o) => s + Number(o.commissionAmount || 0),
+      0
+    );
+    const shopPayable = orders.reduce((s, o) => s + Number(o.shopAmount || 0), 0);
+
+    const customers = await Customer.countDocuments();
+    const shops = await Shop.countDocuments();
+    const deliveryBoys = await DeliveryBoy.countDocuments();
+
+    res.json({
+      totalOrders,
+      deliveredOrders,
+      totalSales,
+      totalCommission,
+      shopPayable,
+      customers,
+      shops,
+      deliveryBoys,
+    });
+  } catch {
+    res.status(500).json({ message: "Stats failed" });
   }
 });
 
