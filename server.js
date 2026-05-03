@@ -41,6 +41,9 @@ app.use(
   "/delivery-boy-app",
   express.static(path.join(__dirname, "..", "delivery-boy-app"))
 );
+app.get("/customer-app/login.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "customer-app", "login.html"));
+});
 const MONGO_URL =
   process.env.MONGO_URI ||
   "mongodb+srv://quickbasket:Quick123@cluster0.d4uhmxk.mongodb.net/quickbasket";
