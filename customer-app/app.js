@@ -93,12 +93,14 @@ function addToCart(id, name, price, image) {
 
 // 🛒 View Cart
 function viewCart() {
- let subtotal = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
 
-let gst = Math.round(subtotal * 0.05);
-let delivery = subtotal > 500 ? 0 : 20;
+  let subtotal = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
 
-let total = subtotal + gst + delivery;
+  let gst = Math.round(subtotal * 0.05);
+  let delivery = subtotal > 500 ? 0 : 20;
+
+  let total = subtotal + gst + delivery;
+
   let output = `<div class="cart-box"><h2>🛒 My Cart</h2>`;
 
   if (cart.length === 0) output += "<p>Cart empty</p>";
@@ -110,15 +112,18 @@ let total = subtotal + gst + delivery;
   });
 
   output += `
+    <p>Subtotal: ₹${subtotal}</p>
+    <p>GST (5%): ₹${gst}</p>
+    <p>Delivery: ₹${delivery}</p>
     <h2>Total: ₹${total}</h2>
+
     <button onclick="payNow()">💳 Pay Now</button>
     <button onclick="loadProducts()">⬅ Back</button>
-    </div>
+  </div>
   `;
 
   document.getElementById("products").innerHTML = output;
 }
-
 // 💳 Payment (Demo)
 function payNow() {
   if (cart.length === 0) {
