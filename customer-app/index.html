@@ -2,10 +2,8 @@
 <html>
 <head>
   <title>SB Grocery Mart</title>
-
   <link rel="stylesheet" href="./style.css">
   <link rel="manifest" href="./manifest.json">
-
   <meta name="theme-color" content="#0a8f3c">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
@@ -13,41 +11,34 @@
 <body>
 
 <script>
-  const token = localStorage.getItem("customerToken");
-
-  if (!token) {
-    window.location.href = "login.html";
-  }
+const token = localStorage.getItem("customerToken");
+if (!token) window.location.href = "login.html";
 </script>
 
 <header class="topbar">
-  <div class="brand">
-    <h1>🛒 SB Grocery Mart</h1>
+  <div>
+    <h1>SB Grocery Mart</h1>
+    <p>Delivery in <b>10 minutes</b></p>
   </div>
 
   <div class="location" onclick="getUserLocation()">
-    <b>Delivery in 13 minutes</b><br>
-    <small id="locationText">Detecting location...</small>
+    📍 <span id="locationText">Detecting location...</span>
   </div>
 
-  <input
-    id="searchInput"
-    oninput="searchProducts()"
-    placeholder='Search "milk", "rice"...'
-  >
+  <input id="searchInput" oninput="searchProducts()" placeholder='Search "milk", "rice", "snacks"...'>
 
-  <button onclick="viewCart()">🛒 Cart (<span id="cartCount">0</span>)</button>
+  <button onclick="viewCart()">🛒 Cart <span id="cartCount">0</span></button>
   <button onclick="trackOrders()">📦 Orders</button>
-  <a class="profile-btn" href="profile.html">👤 Profile</a>
-  <button onclick="logout()">🚪 Logout</button>
+  <button onclick="logout()">Logout</button>
 </header>
 
-<section class="hero">
-  <h2>Stock up on daily essentials</h2>
-  <p>Fresh groceries delivered fast</p>
+<section class="banner">
+  <h2>Fresh groceries delivered fast</h2>
+  <p>Daily essentials, fruits, snacks, dairy and more</p>
 </section>
 
 <section class="categories">
+  <div onclick="loadProducts()">🏪<br>All</div>
   <div onclick="filterCategory('Dairy')">🥛<br>Dairy</div>
   <div onclick="filterCategory('Fruits')">🍎<br>Fruits</div>
   <div onclick="filterCategory('Drinks')">🥤<br>Drinks</div>
@@ -59,10 +50,9 @@
 <h2 class="title">Daily Essentials</h2>
 
 <div id="products" class="products">
-  <p>Loading products...</p>
+  Loading products...
 </div>
 
-<script src="./app.js?v=2000"></script>
-
+<script src="./app.js?v=3000"></script>
 </body>
 </html>
