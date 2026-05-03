@@ -106,10 +106,9 @@ function viewCart() {
 
   document.getElementById("products").innerHTML = output;
 }
-
 function payNow() {
   if (cart.length === 0) {
-    alert("Cart empty ❌");
+    alert("Cart is empty ❌");
     return;
   }
 
