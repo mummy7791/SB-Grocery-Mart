@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SB Grocery Mart Admin</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+
+<div class="admin-box">
+  <header>
+    <h1>⚙️ SB Grocery Mart Admin</h1>
+    <button onclick="loadOrders()">📦 Orders</button>
+    <button onclick="loadProducts()">🛒 Products</button>
+  </header>
+
+  <section class="form-box">
+    <h2>Add Product</h2>
+
+    <input id="name" placeholder="Name">
+    <input id="category" placeholder="Category">
+    <input id="price" placeholder="Price">
+    <input id="image" placeholder="Image URL">
+
+    <button onclick="addProduct()">Add Product</button>
+    <h3 id="msg"></h3>
+  </section>
+
+  <div id="output" class="grid"></div>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>
