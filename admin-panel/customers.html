@@ -1,69 +1,68 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Customers</title>
-  <link rel="stylesheet" href="admin.css">
+  <title>Customer Login - SB Grocery Mart</title>
 </head>
 
 <body>
 
-<h2>👥 Customers</h2>
+<h2>SB Grocery Mart Login</h2>
 
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Phone</th>
-      <th>Email</th>
-      <th>Address</th>
-      <th>Delete</th>
-    </tr>
-  </thead>
+<input id="name" placeholder="Full Name"><br><br>
+<input id="phone" placeholder="Phone Number"><br><br>
+<input id="email" placeholder="Email"><br><br>
+<textarea id="address" placeholder="Delivery Address"></textarea><br><br>
 
-  <tbody id="customers"></tbody>
-</table>
+<button onclick="sendOtp()">Send OTP</button>
+
+<div id="otpBox" style="display:none;">
+  <input id="otp" placeholder="Enter OTP">
+  <button onclick="verifyOtp()">Verify</button>
+</div>
+
+<p id="msg"></p>
 
 <script>
 const API = "http://localhost:5000";
 
-function loadCustomers() {
-  fetch(API + "/api/customers")
-    .then(res => res.json())
-    .then(data => {
-
-      let html = "";
-
-      data.forEach(c => {
-        html += `
-          <tr>
-            <td>${c.name}</td>
-            <td>${c.phone}</td>
-            <td>${c.email}</td>
-            <td>${c.address}</td>
-            <td>
-              <button onclick="deleteCustomer('${c._id}')">❌</button>
-            </td>
-          </tr>
-        `;
-      });
-
-      document.getElementById("customers").innerHTML = html;
-    });
-}
-
-function deleteCustomer(id) {
-  if (!confirm("Delete customer?")) return;
-
-  fetch(API + "/api/customers/" + id, {
-    method: "DELETE"
+function sendOtp() {
+  fetch(API + "/api/customer/send-otp", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      name: name.value,
+      phone: phone.value,
+      email: email.value,
+      address: address.value
+    })
   })
-  .then(() => {
-    alert("Deleted ✅");
-    loadCustomers();
+  .then(res => res.json())
+  .then(data => {
+    msg.innerText = "OTP: " + data.demoOtp;
+    otpBox.style.display = "block";
   });
 }
 
-loadCustomers();
+function verifyOtp() {
+  fetch(API + "/api/customer/verify-otp", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      phone: phone.value,
+      otp: otp.value
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.token) {
+      localStorage.setItem("customerToken", data.token);
+      localStorage.setItem("customer", JSON.stringify(data.customer));
+      window.location.href = "index.html";
+    } else {
+      msg.innerText = data.message;
+    }
+  });
+}
 </script>
 
 </body>
