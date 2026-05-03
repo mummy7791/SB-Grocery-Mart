@@ -10,24 +10,34 @@ function updateCartCount() {
 }
 
 function getUserLocation() {
-  if (!navigator.geolocation) return;
+  const loc = document.getElementById("locationText");
+
+  if (!navigator.geolocation) {
+    loc.innerText = "Location not supported";
+    return;
+  }
+
+  loc.innerText = "Detecting...";
 
   navigator.geolocation.getCurrentPosition(
     pos => {
-      const lat = pos.coords.latitude;
-      const lon = pos.coords.longitude;
+      const lat = pos.coords.latitude.toFixed(5);
+      const lon = pos.coords.longitude.toFixed(5);
 
       userAddress = `Lat: ${lat}, Lon: ${lon}`;
-      const loc = document.getElementById("locationText");
-      if (loc) loc.innerText = userAddress;
+      loc.innerText = userAddress;
+
+      localStorage.setItem("deliveryLocation", userAddress);
     },
     () => {
-      const loc = document.getElementById("locationText");
-      if (loc) loc.innerText = "Location denied";
+      loc.innerText = "Location permission denied";
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000
     }
   );
 }
-
 function loadProducts() {
   fetch(API + "/api/products")
     .then(res => res.json())
