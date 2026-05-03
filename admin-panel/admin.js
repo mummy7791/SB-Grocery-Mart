@@ -59,9 +59,18 @@ function loadOrders() {
         output += `
           <div class="card">
             <h3>${o.customerName}</h3>
-            <p>Total: ₹${o.total}</p>
-            <p>Status: ${o.status}</p>
-            <p>Address: ${o.address}</p>
+
+            <p><b>Phone:</b> ${o.phone || "-"}</p>
+            <p><b>Address:</b> ${o.address || "-"}</p>
+
+            <hr>
+
+            <p><b>Subtotal:</b> ₹${o.subtotal || 0}</p>
+            <p><b>GST:</b> ₹${o.gst || 0}</p>
+            <p><b>Delivery:</b> ₹${o.delivery || 0}</p>
+            <h3>Total: ₹${o.total}</h3>
+
+            <p><b>Status:</b> ${o.status}</p>
 
             <button onclick="updateStatus('${o._id}','Preparing')">Preparing</button>
             <button onclick="updateStatus('${o._id}','Out for Delivery')">Out</button>
@@ -73,7 +82,6 @@ function loadOrders() {
       document.getElementById("output").innerHTML = output;
     });
 }
-
 function updateStatus(id, status) {
   fetch(API + "/api/orders/" + id + "/status", {
     method: "PUT",
