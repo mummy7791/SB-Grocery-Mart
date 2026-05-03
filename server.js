@@ -2,99 +2,142 @@ import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import dns from "dns";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
-require("dotenv").config();
+dotenv.config();
 
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
-const MONGO_URL = "mongodb+srv://quickbasket:Quick123@cluster0.d4uhmxk.mongodb.net/quickbasket";
-mongoose.connect(MONGO_URL)
+// Serve your HTML/CSS/JS files from project root
+app.use(express.static(__dirname));
+
+const MONGO_URL =
+  process.env.MONGO_URI ||
+  "mongodb+srv://quickbasket:Quick123@cluster0.d4uhmxk.mongodb.net/quickbasket";
+
+mongoose
+  .connect(MONGO_URL)
   .then(() => console.log("MongoDB Connected ✅"))
-  .catch(err => console.log(err));
+  .catch((err) => console.log("MongoDB Error ❌", err));
 
-const productSchema = new mongoose.Schema({
-  name: String,
-  category: String,
-  price: Number,
-  image: String
-}, { timestamps: true });
+const productSchema = new mongoose.Schema(
+  {
+    name: String,
+    category: String,
+    price: Number,
+    image: String,
+  },
+  { timestamps: true }
+);
 
-const orderSchema = new mongoose.Schema({
-  customerName: String,
-  phone: String,
-  address: String,
-  items: Array,
-  total: Number,
-  status: { type: String, default: "Placed" }
-}, { timestamps: true });
+const orderSchema = new mongoose.Schema(
+  {
+    customerName: String,
+    phone: String,
+    address: String,
+    items: Array,
+    total: Number,
+    status: { type: String, default: "Placed" },
+  },
+  { timestamps: true }
+);
 
 const Product = mongoose.model("Product", productSchema);
 const Order = mongoose.model("Order", orderSchema);
 
 app.get("/", (req, res) => {
-  res.send("QuickBasket Backend Running");
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
+// PRODUCTS
 app.get("/api/products", async (req, res) => {
-  const products = await Product.find().sort({ createdAt: -1 });
-  res.json(products);
+  try {
+    const products = await Product.find().sort({ createdAt: -1 });
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ message: "Products fetch failed" });
+  }
 });
 
 app.post("/api/products", async (req, res) => {
-  const product = await Product.create({
-    name: req.body.name,
-    category: req.body.category,
-    price: Number(req.body.price),
-    image: req.body.image
-  });
+  try {
+    const product = await Product.create({
+      name: req.body.name,
+      category: req.body.category,
+      price: Number(req.body.price),
+      image: req.body.image,
+    });
 
-  res.json({ message: "Product added", product });
+    res.json({ message: "Product added", product });
+  } catch (err) {
+    res.status(500).json({ message: "Product add failed" });
+  }
 });
 
+// ORDERS
 app.post("/api/orders", async (req, res) => {
-  const order = await Order.create({
-    customerName: req.body.customerName,
-    phone: req.body.phone,
-    address: req.body.address,
-    items: req.body.items,
-    total: Number(req.body.total),
-    status: "Placed"
-  });
+  try {
+    const order = await Order.create({
+      customerName: req.body.customerName,
+      phone: req.body.phone,
+      address: req.body.address,
+      items: req.body.items,
+      total: Number(req.body.total),
+      status: "Placed",
+    });
 
-  res.json({ message: "Order placed", order });
+    res.json({ message: "Order placed", order });
+  } catch (err) {
+    res.status(500).json({ message: "Order failed" });
+  }
 });
 
 app.get("/api/orders", async (req, res) => {
-  const orders = await Order.find().sort({ createdAt: -1 });
-  res.json(orders);
+  try {
+    const orders = await Order.find().sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ message: "Orders fetch failed" });
+  }
 });
 
 app.put("/api/orders/:id/status", async (req, res) => {
-  const order = await Order.findByIdAndUpdate(
-    req.params.id,
-    { status: req.body.status },
-    { new: true }
-  );
+  try {
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status: req.body.status },
+      { new: true }
+    );
 
-  if (!order) return res.status(404).json({ message: "Order not found" });
+    if (!order) return res.status(404).json({ message: "Order not found" });
 
-  res.json({ message: "Status updated", order });
+    res.json({ message: "Status updated", order });
+  } catch (err) {
+    res.status(500).json({ message: "Status update failed" });
+  }
 });
 
+// LOGIN
 const users = [
   { username: "admin", password: "1234", role: "admin" },
-  { username: "user", password: "1234", role: "customer" }
+  { username: "user", password: "1234", role: "customer" },
 ];
 
 app.post("/api/login", (req, res) => {
   const { username, password } = req.body;
 
   const user = users.find(
-    u => u.username === username && u.password === password
+    (u) => u.username === username && u.password === password
   );
 
   if (!user) {
@@ -107,5 +150,5 @@ app.post("/api/login", (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`QuickBasket backend running on port ${PORT}`);
+  console.log(`QuickBasket backend running on http://localhost:${PORT}`);
 });
