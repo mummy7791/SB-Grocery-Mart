@@ -83,6 +83,15 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
+const customerSchema = new mongoose.Schema({
+  name: String,
+  phone: String,
+  email: String,
+  address: String
+}, { timestamps: true });
+
+const Customer = mongoose.model("Customer", customerSchema);
+
 // PRODUCTS
 app.get("/api/products", async (req, res) => {
   try {
