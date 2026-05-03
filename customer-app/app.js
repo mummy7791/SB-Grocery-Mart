@@ -93,8 +93,12 @@ function addToCart(id, name, price, image) {
 
 // 🛒 View Cart
 function viewCart() {
-  let total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+ let subtotal = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
 
+let gst = Math.round(subtotal * 0.05);
+let delivery = subtotal > 500 ? 0 : 20;
+
+let total = subtotal + gst + delivery;
   let output = `<div class="cart-box"><h2>🛒 My Cart</h2>`;
 
   if (cart.length === 0) output += "<p>Cart empty</p>";
