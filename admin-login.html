@@ -21,7 +21,7 @@ function login() {
   if (u === "admin" && p === "1234") {
     localStorage.setItem("role", "admin");
     localStorage.setItem("user", "admin");
-    window.location.href = "admin.html";
+   window.location.href = "./admin.html";
   } else {
     alert("Wrong login ❌");
   }
