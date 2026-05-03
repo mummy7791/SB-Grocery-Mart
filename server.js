@@ -17,8 +17,6 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-
-// Serve your HTML/CSS/JS files from project root
 app.use(express.static(__dirname));
 
 const MONGO_URL =
@@ -42,6 +40,7 @@ const productSchema = new mongoose.Schema(
 
 const orderSchema = new mongoose.Schema(
   {
+    customerId: String,
     customerName: String,
     phone: String,
     address: String,
@@ -88,6 +87,7 @@ app.post("/api/products", async (req, res) => {
 app.post("/api/orders", async (req, res) => {
   try {
     const order = await Order.create({
+      customerId: req.body.customerId,
       customerName: req.body.customerName,
       phone: req.body.phone,
       address: req.body.address,
@@ -108,6 +108,19 @@ app.get("/api/orders", async (req, res) => {
     res.json(orders);
   } catch (err) {
     res.status(500).json({ message: "Orders fetch failed" });
+  }
+});
+
+// CUSTOMER OWN ORDERS
+app.get("/api/my-orders/:customerId", async (req, res) => {
+  try {
+    const orders = await Order.find({
+      customerId: req.params.customerId,
+    }).sort({ createdAt: -1 });
+
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch orders" });
   }
 });
 
