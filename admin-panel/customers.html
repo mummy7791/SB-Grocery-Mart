@@ -1,1 +1,68 @@
 
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Customers</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<h2>👥 Customers List</h2>
+
+<table border="1" width="100%">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Phone</th>
+      <th>Email</th>
+      <th>Address</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody id="customers"></tbody>
+</table>
+
+<script>
+const API = "http://localhost:5000";
+
+function loadCustomers() {
+  fetch(API + "/api/customers")
+    .then(res => res.json())
+    .then(data => {
+      let html = "";
+
+      data.forEach(c => {
+        html += `
+          <tr>
+            <td>${c.name}</td>
+            <td>${c.phone}</td>
+            <td>${c.email}</td>
+            <td>${c.address}</td>
+            <td>
+              <button onclick="deleteCustomer('${c._id}')">Delete</button>
+            </td>
+          </tr>
+        `;
+      });
+
+      document.getElementById("customers").innerHTML = html;
+    });
+}
+
+function deleteCustomer(id) {
+  if (!confirm("Delete this customer?")) return;
+
+  fetch(API + "/api/customers/" + id, {
+    method: "DELETE"
+  })
+  .then(() => {
+    alert("Deleted");
+    loadCustomers();
+  });
+}
+
+loadCustomers();
+</script>
+
+</body>
+</html>
