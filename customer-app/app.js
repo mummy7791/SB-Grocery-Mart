@@ -139,15 +139,19 @@ function payNow() {
 function placeOrder() {
 
   let customerName = prompt("Enter your name");
-  if (!customerName) return alert("Name required ❌");
+  if (!customerName) return;
 
   let phone = prompt("Enter your phone number");
-  if (!phone) return alert("Phone required ❌");
+  if (!phone) return;
 
   let address = prompt("Enter your delivery address");
-  if (!address) return alert("Address required ❌");
+  if (!address) return;
 
-  const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+  // 👉 SAME calculation as cart
+  let subtotal = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+  let gst = Math.round(subtotal * 0.05);
+  let delivery = subtotal > 500 ? 0 : 20;
+  let total = subtotal + gst + delivery;
 
   fetch(API + "/api/orders", {
     method: "POST",
@@ -157,8 +161,10 @@ function placeOrder() {
       phone,
       address,
       items: cart,
-      total,
-      status: "Placed"
+      subtotal,   // 👈 NEW
+      gst,        // 👈 NEW
+      delivery,   // 👈 NEW
+      total
     })
   })
   .then(res => res.json())
@@ -169,7 +175,6 @@ function placeOrder() {
     loadProducts();
   });
 }
-
 // 📦 Track Orders (Auto refresh)
 function trackOrders() {
   fetch(API + "/api/orders")
