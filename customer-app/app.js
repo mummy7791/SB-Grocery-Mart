@@ -1,132 +1,135 @@
-let cart = [];
+const API = "https://quickbasket-backend-y5pc.onrender.com";
 
-// Update cart count
+let cart = [];
+let allProducts = [];
+let userAddress = "Hyderabad";
+
 function updateCartCount() {
   const el = document.getElementById("cartCount");
-  if (el) el.innerText = cart.length;
+  if (el) el.innerText = cart.reduce((s, i) => s + i.qty, 0);
 }
 
-// Load products
+function getUserLocation() {
+  if (!navigator.geolocation) return;
+
+  navigator.geolocation.getCurrentPosition(async pos => {
+    const lat = pos.coords.latitude;
+    const lon = pos.coords.longitude;
+
+    userAddress = `Lat: ${lat}, Lon: ${lon}`;
+    document.getElementById("locationText").innerText = userAddress;
+  }, () => {
+    document.getElementById("locationText").innerText = "Location denied";
+  });
+}
+
 function loadProducts() {
-  fetch("https://quickbasket-backend-y5pc.onrender.com/api/products")
+  fetch(API + "/api/products")
     .then(res => res.json())
     .then(data => {
-      let output = "";
-
-      data.forEach(p => {
-        output += `
-          <div class="card">
-            <img src="${p.image}">
-            <h3>${p.name}</h3>
-            <p>₹${p.price}</p>
-            <button onclick="addToCart('${p._id}','${p.name}',${p.price})">Add</button>
-          </div>
-        `;
-      });
-
-      document.getElementById("products").innerHTML = output;
+      allProducts = data;
+      displayProducts(data);
+    })
+    .catch(() => {
+      document.getElementById("products").innerHTML = "Products loading failed";
     });
 }
 
-// Add to cart
-function addToCart(id, name, price) {
-  cart.push({ id, name, price });
+function displayProducts(data) {
+  let output = "";
+
+  if (data.length === 0) output = "<p>No products found</p>";
+
+  data.forEach(p => {
+    output += `
+      <div class="card">
+        <img src="${p.image || "https://via.placeholder.com/150"}">
+        <h3>${p.name}</h3>
+        <p>${p.category || "Grocery"}</p>
+        <h3>₹${p.price}</h3>
+        <button onclick="addToCart('${p._id}','${p.name}',${p.price}, '${p.image || ""}')">ADD</button>
+      </div>
+    `;
+  });
+
+  document.getElementById("products").innerHTML = output;
+}
+
+function searchProducts() {
+  const q = document.getElementById("searchInput").value.toLowerCase();
+
+  const filtered = allProducts.filter(p =>
+    p.name.toLowerCase().includes(q) ||
+    (p.category || "").toLowerCase().includes(q)
+  );
+
+  displayProducts(filtered);
+}
+
+function filterCategory(cat) {
+  const filtered = allProducts.filter(p =>
+    (p.category || "").toLowerCase().includes(cat.toLowerCase())
+  );
+
+  displayProducts(filtered);
+}
+
+function addToCart(id, name, price, image) {
+  const item = cart.find(i => i.id === id);
+
+  if (item) item.qty++;
+  else cart.push({ id, name, price: Number(price), image, qty: 1 });
+
   updateCartCount();
   alert(name + " added ✅");
 }
 
-// View cart
 function viewCart() {
-  let total = 0;
-  let output = "<h2>🛒 Cart</h2>";
+  let total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
 
-  if (cart.length === 0) {
-    output += "<p>Cart empty</p>";
-  }
+  let output = `<div class="cart-box"><h2>🛒 My Cart</h2>`;
 
-  cart.forEach(item => {
-    total += Number(item.price);
-    output += `<p>${item.name} - ₹${item.price}</p>`;
+  if (cart.length === 0) output += "<p>Cart empty</p>";
+
+  cart.forEach(i => {
+    output += `
+      <p>${i.name} - ₹${i.price} x ${i.qty}</p>
+    `;
   });
 
-  output += `<h3>Total: ₹${total}</h3>`;
-
   output += `
-    <button onclick="payNow()">💳 Pay Now</button>
+    <h2>Total: ₹${total}</h2>
+    <button onclick="payNow()">Pay Now</button>
     <button onclick="loadProducts()">Back</button>
+    </div>
   `;
 
   document.getElementById("products").innerHTML = output;
 }
 
-// 🔥 Razorpay Payment
 function payNow() {
   if (cart.length === 0) {
-    alert("Cart is empty ❌");
+    alert("Cart empty ❌");
     return;
   }
 
-  let total = cart.reduce((sum, item) => sum + Number(item.price), 0);
-
- function payNow() {
-  if (cart.length === 0) {
-    alert("Cart is empty ❌");
-    return;
-  }
-
-  alert("Payment Successful ✅ (Demo Mode)");
+  alert("Payment Successful ✅ Demo Mode");
   placeOrder();
 }
 
-    theme: {
-      color: "#0a8f3c"
-    },
-
-    method: {
-      upi: true,
-      card: true,
-      netbanking: false,
-      wallet: false
-    },
-
-    config: {
-      display: {
-        blocks: {
-          testcard: {
-            name: "Pay using Card",
-            instruments: [
-              { method: "card" }
-            ]
-          },
-          testupi: {
-            name: "Pay using UPI",
-            instruments: [
-              { method: "upi" }
-            ]
-          }
-        },
-        sequence: ["block.testcard", "block.testupi"],
-        preferences: {
-          show_default_blocks: false
-        }
-      }
-    }
-  };
-
-  var rzp1 = new Razorpay(options);
-  rzp1.open();
-}
-// Save order after payment
 function placeOrder() {
-  fetch("https://quickbasket-backend-y5pc.onrender.com/api/orders", {
+  const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+
+  fetch(API + "/api/orders", {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       customerName: "User",
       phone: "9999999999",
-      address: "Hyderabad",
+      address: userAddress,
       items: cart,
-      total: cart.reduce((sum, i) => sum + Number(i.price), 0)
+      total,
+      status: "Placed"
     })
   })
   .then(res => res.json())
@@ -138,32 +141,31 @@ function placeOrder() {
   });
 }
 
-// Track orders
 function trackOrders() {
-  fetch("https://quickbasket-backend-y5pc.onrender.com/api/orders")
+  fetch(API + "/api/orders")
     .then(res => res.json())
     .then(data => {
-      let output = "<h2>📦 Orders</h2>";
+      let output = "<div class='cart-box'><h2>📦 Orders</h2>";
 
       data.forEach(o => {
         output += `
-          <div class="card">
-            <p>Total: ₹${o.total}</p>
-            <p>Status: ${o.status}</p>
-          </div>
+          <hr>
+          <p><b>Total:</b> ₹${o.total}</p>
+          <p><b>Status:</b> ${o.status}</p>
+          <p><b>Address:</b> ${o.address}</p>
         `;
       });
 
+      output += "</div>";
       document.getElementById("products").innerHTML = output;
     });
 }
 
-// Logout
 function logout() {
   localStorage.removeItem("user");
   location.href = "login.html";
 }
 
-// Init
+getUserLocation();
 loadProducts();
 updateCartCount();
