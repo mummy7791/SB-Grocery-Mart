@@ -1,0 +1,109 @@
+import express from "express";
+import cors from "cors";
+import mongoose from "mongoose";
+import dns from "dns";
+
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+const MONGO_URL = "mongodb+srv://quickbasket:Quick123@cluster0.d4uhmxk.mongodb.net/quickbasket";
+mongoose.connect(MONGO_URL)
+  .then(() => console.log("MongoDB Connected ✅"))
+  .catch(err => console.log(err));
+
+const productSchema = new mongoose.Schema({
+  name: String,
+  category: String,
+  price: Number,
+  image: String
+}, { timestamps: true });
+
+const orderSchema = new mongoose.Schema({
+  customerName: String,
+  phone: String,
+  address: String,
+  items: Array,
+  total: Number,
+  status: { type: String, default: "Placed" }
+}, { timestamps: true });
+
+const Product = mongoose.model("Product", productSchema);
+const Order = mongoose.model("Order", orderSchema);
+
+app.get("/", (req, res) => {
+  res.send("QuickBasket Backend Running");
+});
+
+app.get("/api/products", async (req, res) => {
+  const products = await Product.find().sort({ createdAt: -1 });
+  res.json(products);
+});
+
+app.post("/api/products", async (req, res) => {
+  const product = await Product.create({
+    name: req.body.name,
+    category: req.body.category,
+    price: Number(req.body.price),
+    image: req.body.image
+  });
+
+  res.json({ message: "Product added", product });
+});
+
+app.post("/api/orders", async (req, res) => {
+  const order = await Order.create({
+    customerName: req.body.customerName,
+    phone: req.body.phone,
+    address: req.body.address,
+    items: req.body.items,
+    total: Number(req.body.total),
+    status: "Placed"
+  });
+
+  res.json({ message: "Order placed", order });
+});
+
+app.get("/api/orders", async (req, res) => {
+  const orders = await Order.find().sort({ createdAt: -1 });
+  res.json(orders);
+});
+
+app.put("/api/orders/:id/status", async (req, res) => {
+  const order = await Order.findByIdAndUpdate(
+    req.params.id,
+    { status: req.body.status },
+    { new: true }
+  );
+
+  if (!order) return res.status(404).json({ message: "Order not found" });
+
+  res.json({ message: "Status updated", order });
+});
+
+const users = [
+  { username: "admin", password: "1234", role: "admin" },
+  { username: "user", password: "1234", role: "customer" }
+];
+
+app.post("/api/login", (req, res) => {
+  const { username, password } = req.body;
+
+  const user = users.find(
+    u => u.username === username && u.password === password
+  );
+
+  if (!user) {
+    return res.status(401).json({ message: "Invalid credentials" });
+  }
+
+  res.json({ message: "Login success", role: user.role });
+});
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`QuickBasket backend running on port ${PORT}`);
+});

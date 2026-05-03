@@ -1,0 +1,23 @@
+{
+  "id": "/QuickBasket/customer-app/",
+  "name": "SB Grocery Mart",
+  "short_name": "SB Mart",
+  "description": "Online grocery shopping app",
+  "start_url": "/QuickBasket/customer-app/login.html",
+  "scope": "/QuickBasket/customer-app/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0a8f3c",
+  "icons": [
+    {
+      "src": "/QuickBasket/customer-app/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/QuickBasket/customer-app/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
