@@ -2,65 +2,154 @@
 <html>
 <head>
   <title>Customer Login - SB Grocery Mart</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .box {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      width: 350px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #0a8f3c;
+    }
+
+    input, textarea, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+    }
+
+    button {
+      background: #0a8f3c;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    #otpBox {
+      display: none;
+    }
+
+    #msg {
+      margin-top: 10px;
+      color: red;
+      text-align: center;
+    }
+  </style>
 </head>
 
 <body>
 
-<h2>SB Grocery Mart Login</h2>
+<div class="box">
+  <h2>SB Grocery Mart Login</h2>
 
-<input id="name" placeholder="Full Name"><br><br>
-<input id="phone" placeholder="Phone Number"><br><br>
-<input id="email" placeholder="Email"><br><br>
-<textarea id="address" placeholder="Delivery Address"></textarea><br><br>
+  <input id="name" placeholder="Full Name">
+  <input id="phone" placeholder="Phone Number">
+  <input id="email" placeholder="Email">
+  <textarea id="address" placeholder="Delivery Address"></textarea>
 
-<button onclick="sendOtp()">Send OTP</button>
+  <button onclick="sendOtp()">Send OTP</button>
 
-<div id="otpBox" style="display:none;">
-  <input id="otp" placeholder="Enter OTP">
-  <button onclick="verifyOtp()">Verify</button>
+  <div id="otpBox">
+    <input id="otp" placeholder="Enter OTP">
+    <button onclick="verifyOtp()">Verify & Login</button>
+  </div>
+
+  <p id="msg"></p>
 </div>
-
-<p id="msg"></p>
 
 <script>
 const API = "http://localhost:5000";
 
 function sendOtp() {
+
+  const data = {
+    name: document.getElementById("name").value,
+    phone: document.getElementById("phone").value,
+    email: document.getElementById("email").value,
+    address: document.getElementById("address").value
+  };
+
+  if (!data.name || !data.phone || !data.email || !data.address) {
+    document.getElementById("msg").innerText = "Fill all fields ❌";
+    return;
+  }
+
   fetch(API + "/api/customer/send-otp", {
     method: "POST",
     headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      name: name.value,
-      phone: phone.value,
-      email: email.value,
-      address: address.value
-    })
+    body: JSON.stringify(data)
   })
   .then(res => res.json())
-  .then(data => {
-    msg.innerText = "OTP: " + data.demoOtp;
-    otpBox.style.display = "block";
+  .then(result => {
+
+    console.log(result);
+
+    if (result.demoOtp) {
+      document.getElementById("msg").innerText =
+        "OTP: " + result.demoOtp;
+    } else {
+      document.getElementById("msg").innerText =
+        result.message;
+    }
+
+    document.getElementById("otpBox").style.display = "block";
+  })
+  .catch(() => {
+    document.getElementById("msg").innerText = "OTP failed ❌";
   });
 }
 
 function verifyOtp() {
+
+  const data = {
+    phone: document.getElementById("phone").value,
+    otp: document.getElementById("otp").value
+  };
+
   fetch(API + "/api/customer/verify-otp", {
     method: "POST",
     headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      phone: phone.value,
-      otp: otp.value
-    })
+    body: JSON.stringify(data)
   })
   .then(res => res.json())
-  .then(data => {
-    if (data.token) {
-      localStorage.setItem("customerToken", data.token);
-      localStorage.setItem("customer", JSON.stringify(data.customer));
+  .then(result => {
+
+    console.log(result);
+
+    if (result.token) {
+
+      localStorage.setItem("customerToken", result.token);
+      localStorage.setItem("customer", JSON.stringify(result.customer));
+
+      alert("Login Success ✅");
+
       window.location.href = "index.html";
+
     } else {
-      msg.innerText = data.message;
+      document.getElementById("msg").innerText =
+        result.message || "Invalid OTP ❌";
     }
+  })
+  .catch(() => {
+    document.getElementById("msg").innerText = "Login failed ❌";
   });
 }
 </script>
