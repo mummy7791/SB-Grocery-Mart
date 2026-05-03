@@ -1,32 +1,33 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Admin Panel</title>
-  <link rel="stylesheet" href="style.css">
+  <title>SB Grocery Mart Admin</title>
+  <link rel="stylesheet" href="admin.css">
 </head>
 
 <body>
 
-<header>
-<h1>⚙️ SB Grocery Mart Admin</h1>
-  <button onclick="loadOrders()">📦 Orders</button>
-  <button onclick="loadProducts()">🛒 Products</button>
-</header>
+<div class="admin-box">
+  <header>
+    <h1>⚙️ SB Grocery Mart Admin</h1>
+    <button onclick="loadOrders()">📦 Orders</button>
+    <button onclick="loadProducts()">🛒 Products</button>
+  </header>
 
-<div style="padding:15px">
+  <section class="form-box">
+    <h2>Add Product</h2>
 
-  <h2>Add Product</h2>
-  <input id="name" placeholder="Name"><br><br>
-  <input id="category" placeholder="Category"><br><br>
-  <input id="price" placeholder="Price"><br><br>
-  <input id="image" placeholder="Image URL"><br><br>
-  <button onclick="addProduct()">Add Product</button>
+    <input id="name" placeholder="Name">
+    <input id="category" placeholder="Category">
+    <input id="price" placeholder="Price">
+    <input id="image" placeholder="Image URL">
 
-  <h2 id="msg"></h2>
+    <button onclick="addProduct()">Add Product</button>
+    <h3 id="msg"></h3>
+  </section>
 
+  <div id="output" class="grid"></div>
 </div>
-
-<div id="output" class="grid"></div>
 
 <script src="admin.js"></script>
 </body>
