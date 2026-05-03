@@ -44,7 +44,13 @@
 <div id="products" class="products">
   Loading products...
 </div>
+<script>
+const token = localStorage.getItem("customerToken");
 
+if (!token) {
+  window.location.href = "login.html";
+}
+</script>
 <script src="./app.js?v=1000"></script>
 
 </body>
