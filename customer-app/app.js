@@ -51,29 +51,24 @@ function loadProducts() {
     });
 }
 
-function displayProducts(data) {
-  let output = "";
+data.forEach(p => {
+  const image = p.image || "https://via.placeholder.com/150";
 
-  if (!data || data.length === 0) {
-    output = "<p>No products found</p>";
-  }
+  output += `
+    <div class="card">
+      <img src="${image}">
+      <h3>${p.name}</h3>
+      <p>${p.category || "Grocery"}</p>
 
-  data.forEach(p => {
-    const image = p.image || "https://via.placeholder.com/150";
-
-    output += `
-      <div class="card">
-        <img src="${image}">
-        <h3>${p.name}</h3>
-        <p>${p.category || "Grocery"}</p>
+      <div class="price-row">
         <h3>₹${p.price}</h3>
         <button onclick="addToCart('${p._id}', '${p.name}', ${p.price}, '${image}')">
           ADD
         </button>
       </div>
-    `;
-  });
-
+    </div>
+  `;
+});
   document.getElementById("products").innerHTML = output;
 }
 
