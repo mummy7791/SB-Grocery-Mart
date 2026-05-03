@@ -1,24 +1,25 @@
-
 <!DOCTYPE html>
 <html>
 <head>
   <title>Customers</title>
   <link rel="stylesheet" href="admin.css">
 </head>
+
 <body>
 
-<h2>👥 Customers List</h2>
+<h2>👥 Customers</h2>
 
-<table border="1" width="100%">
+<table>
   <thead>
     <tr>
       <th>Name</th>
       <th>Phone</th>
       <th>Email</th>
       <th>Address</th>
-      <th>Action</th>
+      <th>Delete</th>
     </tr>
   </thead>
+
   <tbody id="customers"></tbody>
 </table>
 
@@ -29,6 +30,7 @@ function loadCustomers() {
   fetch(API + "/api/customers")
     .then(res => res.json())
     .then(data => {
+
       let html = "";
 
       data.forEach(c => {
@@ -39,7 +41,7 @@ function loadCustomers() {
             <td>${c.email}</td>
             <td>${c.address}</td>
             <td>
-              <button onclick="deleteCustomer('${c._id}')">Delete</button>
+              <button onclick="deleteCustomer('${c._id}')">❌</button>
             </td>
           </tr>
         `;
@@ -50,13 +52,13 @@ function loadCustomers() {
 }
 
 function deleteCustomer(id) {
-  if (!confirm("Delete this customer?")) return;
+  if (!confirm("Delete customer?")) return;
 
   fetch(API + "/api/customers/" + id, {
     method: "DELETE"
   })
   .then(() => {
-    alert("Deleted");
+    alert("Deleted ✅");
     loadCustomers();
   });
 }
