@@ -404,14 +404,37 @@ app.post("/api/products", async (req, res) => {
 });
 
 // SHOP PRODUCTS
-app.get("/api/shop/products/:shopId", async (req, res) => {
+// SHOP PRODUCT UPDATE
+app.put("/api/products/:id", async (req, res) => {
   try {
-    const products = await Product.find({ shopId: req.params.shopId }).sort({
-      createdAt: -1,
-    });
-    res.json(products);
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      {
+        name: req.body.name,
+        category: req.body.category,
+        price: Number(req.body.price),
+        image: req.body.image,
+      },
+      { new: true }
+    );
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    res.json({ message: "Product updated", product });
   } catch {
-    res.status(500).json({ message: "Shop products failed" });
+    res.status(500).json({ message: "Product update failed" });
+  }
+});
+
+// SHOP PRODUCT DELETE
+app.delete("/api/products/:id", async (req, res) => {
+  try {
+    await Product.findByIdAndDelete(req.params.id);
+    res.json({ message: "Product deleted" });
+  } catch {
+    res.status(500).json({ message: "Product delete failed" });
   }
 });
 
