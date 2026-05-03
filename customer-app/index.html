@@ -2,27 +2,43 @@
 <html>
 <head>
   <title>SB Grocery Mart</title>
- <link rel="stylesheet" href="./style.css">
-  <a href="profile.html">My Profile</a>
+
+  <link rel="stylesheet" href="./style.css">
   <link rel="manifest" href="./manifest.json">
+
   <meta name="theme-color" content="#0a8f3c">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body>
 
+<script>
+  const token = localStorage.getItem("customerToken");
+
+  if (!token) {
+    window.location.href = "login.html";
+  }
+</script>
+
 <header class="topbar">
-  <h1>🛒 SB Grocery Mart</h1>
+  <div class="brand">
+    <h1>🛒 SB Grocery Mart</h1>
+  </div>
 
   <div class="location" onclick="getUserLocation()">
     <b>Delivery in 13 minutes</b><br>
     <small id="locationText">Detecting location...</small>
   </div>
 
-  <input id="searchInput" oninput="searchProducts()" placeholder='Search "milk", "rice"...'>
+  <input
+    id="searchInput"
+    oninput="searchProducts()"
+    placeholder='Search "milk", "rice"...'
+  >
 
   <button onclick="viewCart()">🛒 Cart (<span id="cartCount">0</span>)</button>
   <button onclick="trackOrders()">📦 Orders</button>
+  <a class="profile-btn" href="profile.html">👤 Profile</a>
   <button onclick="logout()">🚪 Logout</button>
 </header>
 
@@ -43,16 +59,10 @@
 <h2 class="title">Daily Essentials</h2>
 
 <div id="products" class="products">
-  Loading products...
+  <p>Loading products...</p>
 </div>
-<script>
-const token = localStorage.getItem("customerToken");
 
-if (!token) {
-  window.location.href = "login.html";
-}
-</script>
-<script src="./app.js?v=1000"></script>
+<script src="./app.js?v=2000"></script>
 
 </body>
 </html>
