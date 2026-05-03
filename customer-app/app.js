@@ -70,7 +70,6 @@ data.forEach(p => {
   `;
 });
   document.getElementById("products").innerHTML = output;
-}
 
 function searchProducts() {
   const q = document.getElementById("searchInput").value.toLowerCase();
