@@ -17,7 +17,13 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// Static files
 app.use(express.static(__dirname));
+app.use("/customer-app", express.static(path.join(__dirname, "customer-app")));
+app.use("/admin-panel", express.static(path.join(__dirname, "admin-panel")));
+app.use("/shop-app", express.static(path.join(__dirname, "shop-app")));
+app.use("/delivery-boy-app", express.static(path.join(__dirname, "delivery-boy-app")));
 
 const MONGO_URL =
   process.env.MONGO_URI ||
@@ -124,6 +130,7 @@ app.get("/api/my-orders/:customerId", async (req, res) => {
   }
 });
 
+// ORDER STATUS UPDATE
 app.put("/api/orders/:id/status", async (req, res) => {
   try {
     const order = await Order.findByIdAndUpdate(
@@ -132,7 +139,9 @@ app.put("/api/orders/:id/status", async (req, res) => {
       { new: true }
     );
 
-    if (!order) return res.status(404).json({ message: "Order not found" });
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
 
     res.json({ message: "Status updated", order });
   } catch (err) {
@@ -140,7 +149,7 @@ app.put("/api/orders/:id/status", async (req, res) => {
   }
 });
 
-// LOGIN
+// SIMPLE ADMIN/CUSTOMER LOGIN
 const users = [
   { username: "admin", password: "1234", role: "admin" },
   { username: "user", password: "1234", role: "customer" },
