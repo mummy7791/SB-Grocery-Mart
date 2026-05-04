@@ -2,17 +2,28 @@
 <html>
 <head>
   <title>SB Grocery Mart Admin</title>
-  <a href="customers.html">👥 Customers</a>
- <link rel="stylesheet" href="./admin-panel/admin.css">
+  <link rel="stylesheet" href="./admin.css">
 </head>
 
 <body>
 
+<script>
+  if (localStorage.getItem("role") !== "admin") {
+    alert("Access Denied ❌");
+    window.location.href = "admin-login.html";
+  }
+</script>
+
 <div class="admin-box">
   <header>
     <h1>⚙️ SB Grocery Mart Admin</h1>
-    <button onclick="loadOrders()">📦 Orders</button>
-    <button onclick="loadProducts()">🛒 Products</button>
+
+    <nav>
+      <button onclick="loadOrders()">📦 Orders</button>
+      <button onclick="loadProducts()">🛒 Products</button>
+      <a href="customers.html">👥 Customers</a>
+      <button onclick="logout()">🚪 Logout</button>
+    </nav>
   </header>
 
   <section class="form-box">
@@ -20,7 +31,7 @@
 
     <input id="name" placeholder="Name">
     <input id="category" placeholder="Category">
-    <input id="price" placeholder="Price">
+    <input id="price" type="number" placeholder="Price">
     <input id="image" placeholder="Image URL">
 
     <button onclick="addProduct()">Add Product</button>
@@ -30,6 +41,15 @@
   <div id="output" class="grid"></div>
 </div>
 
-<script src="./admin-panel/admin.js?v=1"></script>
+<script src="./admin.js?v=2"></script>
+
+<script>
+function logout() {
+  localStorage.removeItem("role");
+  localStorage.removeItem("user");
+  window.location.href = "admin-login.html";
+}
+</script>
+
 </body>
 </html>
