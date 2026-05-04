@@ -1,1 +1,67 @@
 
+<!DOCTYPE html>
+<html>
+<head>
+<title>Delivery Dashboard</title>
+<style>
+body{font-family:Arial;background:#f5f5f5;margin:0}
+header{background:#0a8f3c;color:white;padding:20px;display:flex;justify-content:space-between}
+.container{padding:20px}.box{background:white;padding:15px;border-radius:12px;margin:15px 0;box-shadow:0 3px 10px #0002}
+button{padding:10px 15px;border:none;border-radius:8px;background:#0a8f3c;color:white;cursor:pointer}
+.del{background:#e53935}
+</style>
+</head>
+<body>
+
+<script>
+const boy=JSON.parse(localStorage.getItem("deliveryBoy"));
+if(!boy) location.href="login.html";
+</script>
+
+<header>
+<h2 id="title"></h2>
+<button onclick="logout()">Logout</button>
+</header>
+
+<div class="container">
+<h3>Available Orders</h3>
+<div id="orders"></div>
+</div>
+
+<script>
+const API="http://localhost:5000";
+title.innerText="🚴 "+boy.name;
+
+function loadOrders(){
+ fetch(API+"/api/delivery/orders").then(r=>r.json()).then(data=>{
+  orders.innerHTML=data.map(o=>`
+   <div class="box">
+    <p><b>Order:</b> ${o._id}</p>
+    <p><b>Shop:</b> ${o.shopName}</p>
+    <p><b>Customer:</b> ${o.customerName}</p>
+    <p><b>Phone:</b> ${o.phone}</p>
+    <p><b>Address:</b> ${o.address}</p>
+    <p><b>Total:</b> ₹${o.total}</p>
+    <p><b>Status:</b> ${o.status}</p>
+    <button onclick="pickup('${o._id}')">Pickup</button>
+    <button class="del" onclick="delivered('${o._id}')">Delivered</button>
+   </div>`).join("") || "<p>No accepted orders</p>";
+ });
+}
+
+function pickup(id){
+ fetch(API+"/api/delivery/orders/"+id+"/pickup",{
+  method:"PUT",headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({deliveryBoyId:boy._id})
+ }).then(()=>loadOrders());
+}
+
+function delivered(id){
+ fetch(API+"/api/delivery/orders/"+id+"/delivered",{method:"PUT"}).then(()=>loadOrders());
+}
+
+function logout(){localStorage.removeItem("deliveryBoy");location.href="login.html";}
+loadOrders();
+</script>
+</body>
+</html>
