@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html>
+<head><title>Shop Login</title></head>
+<body style="font-family:Arial;background:#f5f5f5;display:flex;justify-content:center;align-items:center;height:100vh;">
+<div style="background:white;padding:30px;border-radius:15px;width:360px;">
+<h2>🏪 Shop Login / Register</h2>
+
+<input id="name" placeholder="Shop Name" style="width:100%;padding:12px;margin:8px 0;">
+<input id="owner" placeholder="Owner Name" style="width:100%;padding:12px;margin:8px 0;">
+<input id="phone" placeholder="Phone Number" style="width:100%;padding:12px;margin:8px 0;">
+<textarea id="address" placeholder="Shop Address" style="width:100%;padding:12px;margin:8px 0;"></textarea>
+
+<button onclick="sendOtp()" style="width:100%;padding:12px;background:#0a8f3c;color:white;border:none;border-radius:8px;">Send OTP</button>
+
+<div id="otpBox" style="display:none;">
+<input id="otp" placeholder="Enter OTP" style="width:100%;padding:12px;margin:8px 0;">
+<button onclick="verifyOtp()" style="width:100%;padding:12px;background:#0a8f3c;color:white;border:none;border-radius:8px;">Verify & Login</button>
+</div>
+
+<p id="msg" style="color:red;text-align:center;"></p>
+</div>
+
+<script>
+const API = "http://localhost:5000";
+
+function sendOtp() {
+  fetch(API + "/api/shop/send-otp", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      name: name.value,
+      owner: owner.value,
+      phone: phone.value,
+      address: address.value
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    msg.innerText = data.message || "OTP sent";
+    if (data.demoOtp) msg.innerText = "OTP: " + data.demoOtp;
+    otpBox.style.display = "block";
+  });
+}
+
+function verifyOtp() {
+  fetch(API + "/api/shop/verify-otp", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ phone: phone.value, otp: otp.value })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.shop) {
+      localStorage.setItem("shop", JSON.stringify(data.shop));
+      location.href = "shop.html";
+    } else {
+      msg.innerText = data.message || "Login failed";
+    }
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SB Grocery Mart</title>
+ 
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0a8f3c">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+
+<header class="topbar">
+  <h1>🛒 SB Grocery Mart</h1>
+
+  <div class="location" onclick="getUserLocation()">
+    <b>Delivery in 13 minutes</b><br>
+    <small id="locationText">Detecting location...</small>
+  </div>
+
+  <input id="searchInput" oninput="searchProducts()" placeholder='Search "milk", "rice"...'>
+
+  <button onclick="viewCart()">🛒 Cart (<span id="cartCount">0</span>)</button>
+  <button onclick="trackOrders()">📦 Orders</button>
+  <button onclick="logout()">🚪 Logout</button>
+</header>
+
+<section class="hero">
+  <h2>Stock up on daily essentials</h2>
+  <p>Fresh groceries delivered fast</p>
+</section>
+
+<section class="categories">
+  <div onclick="filterCategory('Dairy')">🥛<br>Dairy</div>
+  <div onclick="filterCategory('Fruits')">🍎<br>Fruits</div>
+  <div onclick="filterCategory('Drinks')">🥤<br>Drinks</div>
+  <div onclick="filterCategory('Snacks')">🍪<br>Snacks</div>
+  <div onclick="filterCategory('Rice')">🍚<br>Rice</div>
+  <div onclick="filterCategory('Cleaning')">🧼<br>Cleaning</div>
+</section>
+
+<h2 class="title">Daily Essentials</h2>
+
+<div id="products" class="products">
+  Loading products...
+</div>
+<script>
+window.location.href = "./customer-app/index.html";
+</script>
+
+</body>
+</html>
